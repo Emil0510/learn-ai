@@ -84,7 +84,9 @@ export default function Flashcards({
         aria-label="Click to flip card"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") !isFlipped && setIsFlipped(true);
+          if (e.key === "Enter" || e.key === " ") {
+            if (!isFlipped) setIsFlipped(true);
+          }
         }}
       >
         <div className="flip-card-inner w-full h-full">

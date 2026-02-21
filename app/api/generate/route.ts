@@ -158,7 +158,7 @@ Coverage rules (important):
         ],
       });
 
-      let raw = completion.choices[0]?.message?.content ?? "";
+      const raw = completion.choices[0]?.message?.content ?? "";
       const parsed = parseJsonResponse(raw) as { flashcards?: unknown[]; mcqs?: unknown[] };
       const flashcards = Array.isArray(parsed.flashcards) ? parsed.flashcards : [];
       const mcqs = Array.isArray(parsed.mcqs) ? parsed.mcqs : [];
@@ -212,7 +212,7 @@ Coverage rules (important):
         ],
       });
 
-      let raw = completion.choices[0]?.message?.content ?? "";
+      const raw = completion.choices[0]?.message?.content ?? "";
       const parsed = parseJsonResponse(raw) as { conspect?: string };
       const conspect =
         typeof parsed.conspect === "string" && parsed.conspect.trim()

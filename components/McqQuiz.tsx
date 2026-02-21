@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Image from "next/image";
 import type { MCQ } from "@/lib/types";
 import Callout from "@/components/ui/Callout";
 import ProgressBar from "@/components/ui/ProgressBar";
@@ -32,7 +33,10 @@ export default function McqQuiz({
   lastScore,
   onProgressUpdate,
 }: McqQuizProps) {
-  const saved = savedMcqAnswers ?? new Map<number, SavedAnswer>();
+  const saved = useMemo(
+    () => savedMcqAnswers ?? new Map<number, SavedAnswer>(),
+    [savedMcqAnswers]
+  );
 
   const { initialIndex, initialScore, initialFinished } = useMemo(() => {
     const correctCount = Array.from(saved.values()).filter((v) => v.correct).length;
@@ -54,10 +58,6 @@ export default function McqQuiz({
   const hasAnswered = selectedAnswer !== null || savedForCurrent !== undefined;
   const displayedAnswer =
     selectedAnswer ?? savedForCurrent?.selectedOption ?? null;
-  const displayedCorrect =
-    displayedAnswer !== null
-      ? savedForCurrent?.correct ?? displayedAnswer === question.correct
-      : false;
 
   const handleSelectOption = async (optionIndex: number) => {
     if (hasAnswered) return;
@@ -177,11 +177,13 @@ export default function McqQuiz({
 
       {/* Visual Element (if this question has a graph/diagram) */}
       {question.image_url && (
-        <div className="border border-notion-border rounded-lg overflow-hidden bg-white">
-          <img
+        <div className="border border-notion-border rounded-lg overflow-hidden bg-white relative w-full min-h-[200px]">
+          <Image
             src={question.image_url}
             alt="Question visual reference"
-            className="w-full h-auto"
+            fill
+            className="object-contain"
+            unoptimized
           />
         </div>
       )}
