@@ -79,22 +79,15 @@ export async function POST(request: NextRequest) {
         (globalThis as unknown as { ImageData: unknown }).ImageData =
           napiCanvas.ImageData;
       }
-      // Pre-load worker and expose on globalThis so pdfjs fake worker uses it instead of
-      // resolving pdf.worker.mjs by path (which fails on Vercel serverless)
-      if (typeof (globalThis as unknown as { pdfjsWorker?: unknown }).pdfjsWorker === "undefined") {
-        const workerModule = await import(
-          "pdfjs-dist/legacy/build/pdf.worker.mjs"
-        );
-        (globalThis as unknown as { pdfjsWorker: unknown }).pdfjsWorker =
-          workerModule;
-      }
-      // Use pdfjs-dist + @napi-rs/canvas directly
+      // Use pdfjs-dist without worker (useWorkerFetch: false avoids worker import
+      // which causes "Object.defineProperty called on non-object" in Next.js webpack)
       const { getDocument } = await import(
         "pdfjs-dist/legacy/build/pdf.mjs"
       );
       const pdfDocument = await getDocument({
         data: new Uint8Array(buffer),
         isEvalSupported: false,
+        useWorkerFetch: false,
       }).promise;
       const scale = 1.0;
       const numPages = Math.min(pdfDocument.numPages, MAX_PAGES);

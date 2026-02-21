@@ -1,9 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    // Externalize packages that don't work well with webpack bundling
-    // pdfjs-dist not externalized so worker is bundled and resolvable on Vercel
-    serverComponentsExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
+    // Externalize pdfjs-dist so webpack doesn't bundle it (avoids Object.defineProperty error)
+    serverComponentsExternalPackages: ["pdf-parse", "@napi-rs/canvas", "pdfjs-dist"],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
