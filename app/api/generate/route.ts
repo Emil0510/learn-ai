@@ -3,6 +3,10 @@ import openai from "@/lib/openai";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
+// Top-level import so Vercel includes @napi-rs/canvas in serverless bundle
+// (pdfjs-dist requires it at runtime from node_modules)
+import napiCanvas from "@napi-rs/canvas";
+
 export const maxDuration = 60; // Allow 60 seconds for long AI calls
 
 const MAX_PAGES = 10;
@@ -69,10 +73,11 @@ export async function POST(request: NextRequest) {
       // Polyfill DOMMatrix/Path2D/ImageData for Node (pdfjs-dist expects these at
       // module load time; they are not defined in serverless)
       if (typeof globalThis.DOMMatrix === "undefined") {
-        const napi = await import("@napi-rs/canvas");
-        (globalThis as unknown as { DOMMatrix: unknown }).DOMMatrix = napi.DOMMatrix;
-        (globalThis as unknown as { Path2D: unknown }).Path2D = napi.Path2D;
-        (globalThis as unknown as { ImageData: unknown }).ImageData = napi.ImageData;
+        (globalThis as unknown as { DOMMatrix: unknown }).DOMMatrix =
+          napiCanvas.DOMMatrix;
+        (globalThis as unknown as { Path2D: unknown }).Path2D = napiCanvas.Path2D;
+        (globalThis as unknown as { ImageData: unknown }).ImageData =
+          napiCanvas.ImageData;
       }
       // Pre-load worker and expose on globalThis so pdfjs fake worker uses it instead of
       // resolving pdf.worker.mjs by path (which fails on Vercel serverless)
