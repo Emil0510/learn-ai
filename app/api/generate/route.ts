@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import openai from "@/lib/openai";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-
-// Top-level import so Vercel includes @napi-rs/canvas in serverless bundle
-// (pdfjs-dist requires it at runtime from node_modules)
-import napiCanvas from "@napi-rs/canvas";
+import { pdf } from "pdf-to-img";
 
 export const maxDuration = 60; // Allow 60 seconds for long AI calls
 
@@ -70,54 +67,14 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
 
     try {
-      // Polyfill DOMMatrix/Path2D/ImageData for Node (pdfjs-dist expects these at
-      // module load time; they are not defined in serverless)
-      if (typeof globalThis.DOMMatrix === "undefined") {
-        (globalThis as unknown as { DOMMatrix: unknown }).DOMMatrix =
-          napiCanvas.DOMMatrix;
-        (globalThis as unknown as { Path2D: unknown }).Path2D = napiCanvas.Path2D;
-        (globalThis as unknown as { ImageData: unknown }).ImageData =
-          napiCanvas.ImageData;
-      }
-      // Use pdfjs-dist without worker (useWorkerFetch: false avoids worker import
-      // which causes "Object.defineProperty called on non-object" in Next.js webpack)
-      const { getDocument } = await import(
-        "pdfjs-dist/legacy/build/pdf.mjs"
-      );
-      const pdfDocument = await getDocument({
-        data: new Uint8Array(buffer),
-        isEvalSupported: false,
-        useWorkerFetch: false,
-      }).promise;
-      const scale = 1.0;
-      const numPages = Math.min(pdfDocument.numPages, MAX_PAGES);
-      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-        const page = await pdfDocument.getPage(pageNum);
-        const viewport = page.getViewport({ scale });
-        const canvasFactory = (
-          pdfDocument as unknown as {
-            canvasFactory: {
-              create: (
-                w: number,
-                h: number,
-                bg?: boolean
-              ) => { canvas: { toBuffer(mime: string): Buffer } };
-            };
-          }
-        ).canvasFactory;
-        const { canvas } = canvasFactory.create(
-          viewport.width,
-          viewport.height,
-          false
-        );
-        await page.render({
-          canvas: canvas as unknown as HTMLCanvasElement,
-          viewport,
-        }).promise;
-        const pngBuffer = canvas.toBuffer("image/png");
+      const document = await pdf(buffer, { scale: 1.0 });
+      let pageCount = 0;
+      for await (const image of document) {
+        if (pageCount >= MAX_PAGES) break;
         base64Images.push(
-          `data:image/png;base64,${pngBuffer.toString("base64")}`
+          `data:image/png;base64,${(image as Buffer).toString("base64")}`
         );
+        pageCount++;
       }
 
       if (base64Images.length === 0) {
