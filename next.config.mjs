@@ -2,11 +2,8 @@
 const nextConfig = {
   experimental: {
     // Externalize packages that don't work well with webpack bundling
-    serverComponentsExternalPackages: [
-      "pdf-parse",
-      "pdfjs-dist",
-      "@napi-rs/canvas",
-    ],
+    // pdfjs-dist not externalized so worker is bundled and resolvable on Vercel
+    serverComponentsExternalPackages: ["pdf-parse", "@napi-rs/canvas"],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {

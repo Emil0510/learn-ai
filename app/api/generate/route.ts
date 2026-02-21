@@ -74,8 +74,16 @@ export async function POST(request: NextRequest) {
         (globalThis as unknown as { Path2D: unknown }).Path2D = napi.Path2D;
         (globalThis as unknown as { ImageData: unknown }).ImageData = napi.ImageData;
       }
-      // Use pdfjs-dist + @napi-rs/canvas directly (avoids pdf-to-img's resolve of
-      // pdfjs-dist/package.json which fails in Vercel serverless bundle)
+      // Pre-load worker and expose on globalThis so pdfjs fake worker uses it instead of
+      // resolving pdf.worker.mjs by path (which fails on Vercel serverless)
+      if (typeof (globalThis as unknown as { pdfjsWorker?: unknown }).pdfjsWorker === "undefined") {
+        const workerModule = await import(
+          "pdfjs-dist/legacy/build/pdf.worker.mjs"
+        );
+        (globalThis as unknown as { pdfjsWorker: unknown }).pdfjsWorker =
+          workerModule;
+      }
+      // Use pdfjs-dist + @napi-rs/canvas directly
       const { getDocument } = await import(
         "pdfjs-dist/legacy/build/pdf.mjs"
       );
