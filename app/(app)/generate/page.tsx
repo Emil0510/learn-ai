@@ -49,7 +49,7 @@ function GenerateContent() {
             setResult({
               flashcards: data.flashcards,
               mcqs: data.mcqs,
-              revision_sheet: data.revision_sheet,
+              conspect: data.conspect ?? data.revision_sheet ?? "",
               studySetId: data.id,
               title: data.title,
             });
@@ -70,6 +70,7 @@ function GenerateContent() {
 
       const res = await fetch("/api/generate", {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
 
@@ -98,7 +99,7 @@ function GenerateContent() {
         </h1>
         {!result && (
           <p className="text-[15px] text-notion-muted mt-1.5">
-            Upload a PDF to generate flashcards, MCQs, and a revision sheet.
+            Upload a PDF to generate flashcards, MCQs, and a conspect.
           </p>
         )}
       </div>
@@ -144,7 +145,11 @@ function GenerateContent() {
             <SignInBanner />
           )}
 
-          <StudyMaterials data={result} />
+          <StudyMaterials
+            key={result.studySetId ?? "new"}
+            data={result}
+            studySetId={result.studySetId ?? undefined}
+          />
 
           {/* Reset button */}
           <div className="pt-4 border-t border-notion-border">

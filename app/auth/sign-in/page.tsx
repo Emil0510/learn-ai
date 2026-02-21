@@ -26,7 +26,7 @@ export default function SignInPage() {
           <div className="w-7 h-7 bg-notion-text rounded flex items-center justify-center">
             <Zap size={15} className="text-white" strokeWidth={2} />
           </div>
-          <span className="text-[16px] font-semibold text-notion-text">StudyFlash AI</span>
+          <span className="text-[16px] font-semibold text-notion-text">PrePify</span>
         </div>
 
         {/* Card */}

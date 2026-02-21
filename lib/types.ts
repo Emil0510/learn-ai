@@ -27,13 +27,32 @@ export interface StudySet {
   flashcards: Flashcard[];
   mcqs: MCQ[];
   revision_sheet: string;
+  conspect?: string;
   created_at: string;
 }
 
 export interface GenerateResponse {
   flashcards: Flashcard[];
   mcqs: MCQ[];
-  revision_sheet: string;
+  revision_sheet?: string;
+  conspect: string;
   studySetId: string;
   title: string;
+}
+
+// Progress (saved correct/wrong answers)
+export interface FlashcardProgressItem {
+  index: number;
+  correct: boolean;
+}
+
+export interface McqProgressItem {
+  index: number;
+  selectedOption: number;
+  correct: boolean;
+}
+
+export interface StudyProgress {
+  flashcardProgress: FlashcardProgressItem[];
+  mcqProgress: McqProgressItem[];
 }

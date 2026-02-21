@@ -1,0 +1,102 @@
+---
+title: Components — UI Architecture
+description: Architecture of React components — layout, feature components, and UI primitives.
+---
+
+# Components — UI Architecture
+
+Architecture of React components: layout, feature components, and UI primitives.
+
+## Layout
+
+```
+components/
+├── ARCHITECTURE.md / .mdc     ← This file
+├── Navbar.tsx                 # Top bar (menu button, etc.) — used in (app) layout
+├── Sidebar.tsx                # Left nav (links, user) — used in (app) layout
+├── SignInBanner.tsx           # "Sign in to save" — used on generate page
+├── PdfUpload.tsx              # PDF drop/select — generate page
+├── LoadingState.tsx           # Loading UI during generate
+├── ErrorCallout.tsx           # Error message display
+├── StudyMaterials.tsx         # Tabs + Flashcards | MCQs | Revision
+├── Flashcards.tsx             # Flip cards + prev/next
+├── McqQuiz.tsx                # MCQ flow + score + restart
+├── RevisionSheet.tsx          # Markdown prose (react-markdown)
+└── ui/                        # Primitives
+    ├── Button.tsx
+    ├── Card.tsx
+    ├── Input.tsx
+    ├── Tabs.tsx
+    └── Callout.tsx
+```
+
+## Layout Components
+
+### Sidebar (`Sidebar.tsx`)
+
+- **Props:** `mobileOpen`, `onClose`.
+- **Behavior:** Nav links (Home, Generate, Dashboard, Pricing); user block (avatar, name, Sign out) or "Sign in"; desktop = fixed left; mobile = overlay, close on link click or overlay click.
+- **Auth:** Subscribes to `onAuthStateChange` and `getUser()` via Supabase client.
+
+### Navbar (`Navbar.tsx`)
+
+- **Props:** `onMenuClick`.
+- **Behavior:** Renders top bar; menu button calls `onMenuClick` (opens mobile sidebar).
+
+## Feature Components (Generate flow)
+
+### PdfUpload (`PdfUpload.tsx`)
+
+- **Props:** `onFileSelect`, `selectedFile`, `disabled`.
+- **Behavior:** Drop zone + file input; validates PDF; calls `onFileSelect(file)`.
+
+### LoadingState (`LoadingState.tsx`)
+
+- **Props:** (none or minimal).
+- **Behavior:** Shows loading indicator while generation is in progress.
+
+### ErrorCallout (`ErrorCallout.tsx`)
+
+- **Props:** `message: string`.
+- **Behavior:** Renders error message in a callout style.
+
+### SignInBanner (`SignInBanner.tsx`)
+
+- **Behavior:** Prompts guest users to sign in to save study sets; link to `/auth/sign-in`.
+
+### StudyMaterials (`StudyMaterials.tsx`)
+
+- **Props:** `data: GenerateResponse`.
+- **Behavior:** Tabs: Flashcards | MCQs | Revision Sheet. Renders count on first two tabs. Delegates to `Flashcards`, `McqQuiz`, `RevisionSheet`.
+
+### Flashcards (`Flashcards.tsx`)
+
+- **Props:** `flashcards: Flashcard[]`.
+- **Behavior:** Single flip card (front = question, back = answer); prev/next; "Click to reveal answer"; index display (e.g. 1 / 15). Uses CSS classes `flip-card`, `flip-card-inner`, `flip-card-front`, `flip-card-back` from `globals.css`.
+
+### McqQuiz (`McqQuiz.tsx`)
+
+- **Props:** `mcqs: MCQ[]`.
+- **Behavior:** One question at a time; options clickable; after select, show correct/incorrect and explanation (via `Callout`); next until done; then final score and restart.
+
+### RevisionSheet (`RevisionSheet.tsx`)
+
+- **Props:** `content: string` (markdown).
+- **Behavior:** Renders with `react-markdown` and custom components for headings, paragraphs, lists, code, blockquote, etc. Uses class `revision-prose` and Notion-like tokens.
+
+## UI Primitives (`components/ui/`)
+
+- **Button** — Used for primary actions (CTA, "Generate", "Continue with Google").
+- **Card** — Container with border/background (if used).
+- **Input** — Text input (if used in forms).
+- **Tabs** — Tab list + active tab; used by StudyMaterials.
+- **Callout** — Highlighted box (e.g. MCQ explanation, errors).
+
+All styled with Tailwind and design tokens from `globals.css` (`--notion-*`).
+
+## Conventions
+
+- Use `"use client"` where state or browser APIs are needed (all of the above except possibly some ui components).
+- Import types from `@/lib/types` (e.g. `GenerateResponse`, `Flashcard`, `MCQ`).
+- Keep presentational logic in components; data fetching and auth checks in pages or layout.
+- Reuse `ui/` primitives for consistency; extend with className when needed.

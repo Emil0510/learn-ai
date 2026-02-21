@@ -1,0 +1,59 @@
+# StudyFlash AI — Architecture Overview
+
+This document describes the high-level architecture of the LearnAI (StudyFlash AI) project. Detailed docs live in each area’s folder.
+
+## Product
+
+**StudyFlash AI** turns any PDF into a study set: flashcards, multiple-choice questions, and a markdown revision sheet, powered by GPT-4o.
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 14 (App Router) |
+| Auth | Supabase Auth (Google OAuth) |
+| Database & Storage | Supabase (PostgreSQL + Storage) |
+| AI | OpenAI GPT-4o (vision + text) |
+| Payments | Stripe (checkout + webhook) |
+| UI | React, Tailwind CSS, Lucide, custom design tokens |
+
+## Repository Layout
+
+```
+learnai/
+├── ARCHITECTURE.md          ← You are here (overview)
+├── app/
+│   ├── ARCHITECTURE.md      ← Routes, pages, layouts
+│   ├── api/
+│   │   └── ARCHITECTURE.md  ← API routes
+│   ├── auth/                ← Sign-in, callback
+│   └── (app)/               ← App shell (sidebar, dashboard, generate)
+├── components/
+│   ├── ARCHITECTURE.md      ← UI components
+│   └── ui/                  ← Primitives (Button, Card, Tabs, …)
+├── lib/
+│   ├── ARCHITECTURE.md      ← Shared libraries
+│   ├── supabase/            ← Server, client, middleware, service
+│   ├── openai.ts
+│   └── types.ts
+└── middleware.ts           ← Session refresh, route protection
+```
+
+## Data Flow (Generate)
+
+1. User uploads PDF on `/generate`.
+2. `POST /api/generate`: validate PDF → convert to images (first 5 pages) → upload PDF to Supabase Storage → call GPT-4o with images + prompt → parse JSON → insert `study_sets` row → return flashcards, MCQs, revision_sheet.
+3. Client shows results in tabs (Flashcards, MCQs, Revision Sheet). If logged in, set is stored and listed on Dashboard.
+
+## Auth Model
+
+- **Guest:** Can generate; `user_id` is `null` in `study_sets`. Sign-in banner encourages saving.
+- **Signed in:** Google OAuth via Supabase; session in cookies; middleware refreshes session; `/dashboard` is protected (redirect to `/auth/sign-in`).
+
+## Where to Read More
+
+- [App (routes & pages)](app/ARCHITECTURE.md) · [App (.mdc)](app/ARCHITECTURE.mdc)
+- [API routes](app/api/ARCHITECTURE.md) · [API (.mdc)](app/api/ARCHITECTURE.mdc)
+- [Auth](app/auth/ARCHITECTURE.md) · [Auth (.mdc)](app/auth/ARCHITECTURE.mdc)
+- [Lib (Supabase, OpenAI, types)](lib/ARCHITECTURE.md) · [Lib (.mdc)](lib/ARCHITECTURE.mdc)
+- [Components](components/ARCHITECTURE.md) · [Components (.mdc)](components/ARCHITECTURE.mdc)

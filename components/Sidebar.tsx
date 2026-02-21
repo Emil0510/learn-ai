@@ -54,7 +54,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           <div className="w-6 h-6 bg-white rounded flex items-center justify-center">
             <Zap size={14} className="text-notion-sidebar" strokeWidth={2} />
           </div>
-          <span className="text-[14px] font-semibold text-white">StudyFlash AI</span>
+          <span className="text-[14px] font-semibold text-white">PrePify</span>
         </Link>
         {onClose && (
           <button onClick={onClose} className="text-white/60 hover:text-white md:hidden">

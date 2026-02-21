@@ -12,7 +12,7 @@ const features = [
 ];
 
 export const metadata = {
-  title: "Pricing — StudyFlash AI",
+  title: "Pricing — PrePify",
   description: "Simple, affordable pricing to supercharge your studying.",
 };
 
@@ -25,7 +25,7 @@ export default function PricingPage() {
           <div className="w-5 h-5 bg-notion-text rounded flex items-center justify-center">
             <Zap size={12} className="text-white" strokeWidth={2} />
           </div>
-          <span className="text-[14px] font-semibold text-notion-text">StudyFlash AI</span>
+          <span className="text-[14px] font-semibold text-notion-text">PrePify</span>
         </Link>
         <Link
           href="/auth/sign-in"
@@ -103,7 +103,7 @@ export default function PricingPage() {
 
       <footer className="border-t border-notion-border py-5 px-6 text-center">
         <p className="text-[12px] text-notion-muted">
-          © {new Date().getFullYear()} StudyFlash AI. All rights reserved.
+          © {new Date().getFullYear()} PrePify. All rights reserved.
         </p>
       </footer>
     </div>

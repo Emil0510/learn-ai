@@ -1,27 +1,93 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { MCQ } from "@/lib/types";
 import Callout from "@/components/ui/Callout";
+import ProgressBar from "@/components/ui/ProgressBar";
+
+type SavedAnswer = { index: number; selectedOption: number; correct: boolean };
 
 interface McqQuizProps {
   mcqs: MCQ[];
+  studySetId?: string;
+  savedMcqAnswers?: Map<number, SavedAnswer>;
+  lastScore?: { correct: number; total: number };
+  onProgressUpdate?: (
+    update?: { type: "mcq"; index: number; selectedOption: number; correct: boolean }
+  ) => void;
 }
 
-export default function McqQuiz({ mcqs }: McqQuizProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+function getFirstUnansweredIndex(
+  total: number,
+  saved: Map<number, SavedAnswer>
+): number {
+  for (let i = 0; i < total; i++) if (!saved.has(i)) return i;
+  return total;
+}
+
+export default function McqQuiz({
+  mcqs,
+  studySetId,
+  savedMcqAnswers,
+  lastScore,
+  onProgressUpdate,
+}: McqQuizProps) {
+  const saved = savedMcqAnswers ?? new Map<number, SavedAnswer>();
+
+  const { initialIndex, initialScore, initialFinished } = useMemo(() => {
+    const correctCount = Array.from(saved.values()).filter((v) => v.correct).length;
+    const firstUnanswered = getFirstUnansweredIndex(mcqs.length, saved);
+    return {
+      initialIndex: firstUnanswered < mcqs.length ? firstUnanswered : 0,
+      initialScore: correctCount,
+      initialFinished: saved.size > 0 && saved.size >= mcqs.length,
+    };
+  }, [mcqs.length, saved]);
+
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [isFinished, setIsFinished] = useState(false);
+  const [score, setScore] = useState(initialScore);
+  const [isFinished, setIsFinished] = useState(initialFinished);
 
   const question = mcqs[currentIndex];
-  const hasAnswered = selectedAnswer !== null;
+  const savedForCurrent = saved.get(currentIndex);
+  const hasAnswered = selectedAnswer !== null || savedForCurrent !== undefined;
+  const displayedAnswer =
+    selectedAnswer ?? savedForCurrent?.selectedOption ?? null;
+  const displayedCorrect =
+    displayedAnswer !== null
+      ? savedForCurrent?.correct ?? displayedAnswer === question.correct
+      : false;
 
-  const handleSelectOption = (optionIndex: number) => {
+  const handleSelectOption = async (optionIndex: number) => {
     if (hasAnswered) return;
     setSelectedAnswer(optionIndex);
-    if (optionIndex === question.correct) {
-      setScore((s) => s + 1);
+    const correct = optionIndex === question.correct;
+    if (correct) setScore((s) => s + 1);
+
+    onProgressUpdate?.({
+      type: "mcq",
+      index: currentIndex,
+      selectedOption: optionIndex,
+      correct,
+    });
+    if (studySetId) {
+      try {
+        const res = await fetch(`/api/study-sets/${studySetId}/progress`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "mcq",
+            mcqIndex: currentIndex,
+            selectedOption: optionIndex,
+            correct,
+          }),
+        });
+        if (res.ok) onProgressUpdate?.();
+      } catch {
+        // ignore
+      }
     }
   };
 
@@ -42,27 +108,43 @@ export default function McqQuiz({ mcqs }: McqQuizProps) {
   };
 
   if (isFinished) {
+    const wrong = mcqs.length - score;
     return (
-      <div className="py-12 text-center space-y-4">
-        <p className="text-[32px] font-bold text-notion-text">
-          You scored {score} / {mcqs.length}
-        </p>
-        <p className="text-[15px] text-notion-muted">
-          {score === mcqs.length
-            ? "Perfect score! Excellent work."
-            : score >= mcqs.length * 0.7
-            ? "Great job! Keep reviewing the ones you missed."
-            : "Keep studying and try again!"}
-        </p>
-        <button
-          onClick={handleRestart}
-          className="mt-4 text-[14px] text-notion-text underline underline-offset-2 hover:opacity-70 transition-opacity"
-        >
-          Restart quiz →
-        </button>
+      <div className="py-12 space-y-6">
+        <div className="text-center space-y-2">
+          <p className="text-[32px] font-bold text-notion-text">
+            You scored {score} / {mcqs.length}
+          </p>
+          <p className="text-[15px] text-notion-muted">
+            {score === mcqs.length
+              ? "Perfect score! Excellent work."
+              : score >= mcqs.length * 0.7
+              ? "Great job! Keep reviewing the ones you missed."
+              : "Keep studying and try again!"}
+          </p>
+        </div>
+        <div className="max-w-md mx-auto">
+          <ProgressBar
+            correct={score}
+            wrong={wrong}
+            total={mcqs.length}
+            label="This run"
+          />
+        </div>
+        <div className="text-center">
+          <button
+            onClick={handleRestart}
+            className="text-[14px] text-notion-text underline underline-offset-2 hover:opacity-70 transition-opacity"
+          >
+            Restart quiz →
+          </button>
+        </div>
       </div>
     );
   }
+
+  const answeredSoFar = currentIndex + (hasAnswered ? 1 : 0);
+  const wrongSoFar = answeredSoFar - score;
 
   return (
     <div className="py-6 space-y-5">
@@ -71,10 +153,27 @@ export default function McqQuiz({ mcqs }: McqQuizProps) {
         <span className="text-[12px] text-notion-muted tracking-[0.04em]">
           QUESTION {currentIndex + 1} OF {mcqs.length}
         </span>
-        <span className="text-[12px] text-notion-muted">
-          Score: {score}
-        </span>
+        <div className="flex items-center gap-3">
+          {lastScore !== undefined && (
+            <span className="text-[12px] text-notion-muted">
+              Last score: {lastScore.correct}/{lastScore.total}
+            </span>
+          )}
+          <span className="text-[12px] text-notion-muted">
+            Score: {score}
+          </span>
+        </div>
       </div>
+
+      {/* Progress bar: this run so far */}
+      {answeredSoFar > 0 && (
+        <ProgressBar
+          correct={score}
+          wrong={wrongSoFar}
+          total={mcqs.length}
+          label="This run"
+        />
+      )}
 
       {/* Visual Element (if this question has a graph/diagram) */}
       {question.image_url && (
@@ -96,14 +195,14 @@ export default function McqQuiz({ mcqs }: McqQuizProps) {
       <div className="space-y-2">
         {question.options.map((option, idx) => {
           const isCorrect = idx === question.correct;
-          const isSelected = idx === selectedAnswer;
+          const isSelected = idx === displayedAnswer;
           const showCorrect = hasAnswered && isCorrect;
           const showWrong = hasAnswered && isSelected && !isCorrect;
 
           return (
             <button
               key={idx}
-              onClick={() => handleSelectOption(idx)}
+              onClick={() => void handleSelectOption(idx)}
               disabled={hasAnswered}
               className={`w-full text-left px-4 py-3 border rounded-[6px] text-[15px] transition-colors duration-150 ${
                 showCorrect

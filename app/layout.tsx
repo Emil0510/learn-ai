@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "StudyFlash AI — Turn any PDF into a study set",
+  title: "PrePify — Turn any PDF into a study set",
   description:
     "Upload your notes or textbook. Get flashcards, MCQs, and a revision sheet instantly.",
 };

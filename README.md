@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StudyFlash AI (LearnAI)
 
-## Getting Started
+Turn any PDF into a study set: **flashcards**, **MCQs**, and a **revision sheet** — powered by GPT-4o.
 
-First, run the development server:
+## Quick start
 
 ```bash
+npm install
+# Create .env.local with Supabase + OpenAI keys (see DOCS.md)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) and go to **Get started for free** to upload a PDF and generate materials.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What you need
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Supabase**: project URL, anon key, service role key; table `study_sets` and storage bucket `pdfs`.
+- **OpenAI**: API key (GPT-4o).
+- **Optional**: `NEXT_PUBLIC_SITE_URL` for OAuth redirects.
 
-## Learn More
+See **[DOCS.md](DOCS.md)** for full setup, env vars, Supabase schema, and architecture.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server (localhost:3000) |
+| `npm run build` | Production build |
+| `npm run start` | Run production server |
+| `npm run lint` | Run ESLint |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Docs
 
-## Deploy on Vercel
+- **[DOCS.md](DOCS.md)** — Project documentation (features, env, API, deployment).
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** — Architecture overview; see also `app/`, `app/api/`, `app/auth/`, `lib/`, `components/` for per-area architecture (`.md` and `.mdc`).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 14 (App Router), TypeScript, Supabase (Auth + DB + Storage), OpenAI GPT-4o, Tailwind CSS.
