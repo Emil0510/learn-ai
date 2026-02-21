@@ -66,23 +66,52 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
 
     try {
-      // Polyfill DOMMatrix/Path2D/ImageData for Node (pdfjs-dist used by pdf-to-img
-      // expects these at module load time; they are not defined in serverless)
+      // Polyfill DOMMatrix/Path2D/ImageData for Node (pdfjs-dist expects these at
+      // module load time; they are not defined in serverless)
       if (typeof globalThis.DOMMatrix === "undefined") {
         const napi = await import("@napi-rs/canvas");
         (globalThis as unknown as { DOMMatrix: unknown }).DOMMatrix = napi.DOMMatrix;
         (globalThis as unknown as { Path2D: unknown }).Path2D = napi.Path2D;
         (globalThis as unknown as { ImageData: unknown }).ImageData = napi.ImageData;
       }
-      const { pdf } = await import("pdf-to-img");
-      const document = await pdf(buffer, { scale: 1.0 });
-      let pageIndex = 0;
-
-      for await (const image of document) {
-        const base64 = Buffer.from(image).toString("base64");
-        base64Images.push(`data:image/png;base64,${base64}`);
-        pageIndex++;
-        if (pageIndex >= MAX_PAGES) break;
+      // Use pdfjs-dist + @napi-rs/canvas directly (avoids pdf-to-img's resolve of
+      // pdfjs-dist/package.json which fails in Vercel serverless bundle)
+      const { getDocument } = await import(
+        "pdfjs-dist/legacy/build/pdf.mjs"
+      );
+      const pdfDocument = await getDocument({
+        data: new Uint8Array(buffer),
+        isEvalSupported: false,
+      }).promise;
+      const scale = 1.0;
+      const numPages = Math.min(pdfDocument.numPages, MAX_PAGES);
+      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+        const page = await pdfDocument.getPage(pageNum);
+        const viewport = page.getViewport({ scale });
+        const canvasFactory = (
+          pdfDocument as unknown as {
+            canvasFactory: {
+              create: (
+                w: number,
+                h: number,
+                bg?: boolean
+              ) => { canvas: { toBuffer(mime: string): Buffer } };
+            };
+          }
+        ).canvasFactory;
+        const { canvas } = canvasFactory.create(
+          viewport.width,
+          viewport.height,
+          false
+        );
+        await page.render({
+          canvas: canvas as unknown as HTMLCanvasElement,
+          viewport,
+        }).promise;
+        const pngBuffer = canvas.toBuffer("image/png");
+        base64Images.push(
+          `data:image/png;base64,${pngBuffer.toString("base64")}`
+        );
       }
 
       if (base64Images.length === 0) {

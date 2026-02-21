@@ -4,7 +4,6 @@ const nextConfig = {
     // Externalize packages that don't work well with webpack bundling
     serverComponentsExternalPackages: [
       "pdf-parse",
-      "pdf-to-img",
       "pdfjs-dist",
       "@napi-rs/canvas",
     ],
