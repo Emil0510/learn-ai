@@ -1,101 +1,103 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Brain, FileText, Zap } from "lucide-react";
+import Button from "@/components/ui/Button";
 
-export default function Home() {
+const features = [
+  {
+    icon: FileText,
+    title: "Upload any PDF",
+    description:
+      "Lecture notes, textbook chapters, research papers — any educational PDF works.",
+  },
+  {
+    icon: Brain,
+    title: "AI-powered study materials",
+    description:
+      "GPT-4o reads your content and generates flashcards, MCQs, and a full revision sheet.",
+  },
+  {
+    icon: Zap,
+    title: "Ready in seconds",
+    description:
+      "No manual work. Your entire study set is generated and ready to review instantly.",
+  },
+];
+
+export default function LandingPage() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Minimal top nav */}
+      <header className="h-12 border-b border-notion-border flex items-center justify-between px-6">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 bg-notion-text rounded flex items-center justify-center">
+            <Zap size={12} className="text-white" strokeWidth={2} />
+          </div>
+          <span className="text-[14px] font-semibold text-notion-text">StudyFlash AI</span>
+        </div>
+        <div className="flex items-center gap-5">
+          <Link
+            href="/pricing"
+            className="text-[14px] text-notion-muted hover:text-notion-text transition-colors"
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/auth/sign-in"
+            className="text-[14px] text-notion-muted hover:text-notion-text transition-colors"
+          >
+            Sign in
+          </Link>
+        </div>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Hero */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center">
+        <div className="max-w-landing mx-auto">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-notion-border bg-notion-card text-[12px] text-notion-muted mb-8 tracking-[0.04em]">
+            <Zap size={11} strokeWidth={1.5} />
+            Powered by GPT-4o
+          </div>
+
+          <h1 className="text-[42px] sm:text-[52px] font-bold text-notion-text leading-[1.1] tracking-tight mb-5">
+            Turn any PDF into
+            <br />a study set.
+          </h1>
+          <p className="text-[17px] text-notion-muted leading-relaxed max-w-[480px] mx-auto mb-10">
+            Upload your notes or textbook. Get flashcards, MCQs, and a
+            revision sheet instantly.
+          </p>
+
+          <Link href="/generate">
+            <Button size="md" className="px-6 py-2.5 text-[15px]">
+              Get started for free
+            </Button>
+          </Link>
+
+          {/* Features */}
+          <div className="mt-20 text-left space-y-0 divide-y divide-notion-border border border-notion-border rounded-lg overflow-hidden max-w-[520px] mx-auto">
+            {features.map(({ icon: Icon, title, description }) => (
+              <div key={title} className="flex gap-4 px-5 py-4 bg-white hover:bg-notion-hover transition-colors">
+                <div className="mt-0.5 shrink-0">
+                  <Icon size={16} className="text-notion-muted" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <p className="text-[14px] font-semibold text-notion-text mb-0.5">{title}</p>
+                  <p className="text-[14px] text-notion-muted leading-relaxed">{description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="border-t border-notion-border py-5 px-6 text-center">
+        <p className="text-[12px] text-notion-muted">
+          © {new Date().getFullYear()} StudyFlash AI. All rights reserved.
+        </p>
       </footer>
     </div>
   );
 }
+

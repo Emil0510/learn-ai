@@ -2,26 +2,151 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --notion-bg: #ffffff;
+  --notion-card: #f7f7f5;
+  --notion-sidebar: #1f1f1f;
+  --notion-text: #1a1a1a;
+  --notion-muted: #6b6b6b;
+  --notion-border: #e8e8e4;
+  --notion-hover: #f0f0ee;
+  --notion-danger: #eb5757;
+  --notion-success: #0f7b55;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--notion-text);
+  background: var(--notion-bg);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* Flip Card Styles */
+.flip-card {
+  perspective: 1000px;
+  cursor: pointer;
 }
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* Loading ellipsis animation */
+@keyframes ellipsis {
+  0% { content: ''; }
+  33% { content: '.'; }
+  66% { content: '..'; }
+  100% { content: '...'; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Prose / Revision Sheet styles */
+.revision-prose h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 24px 0 8px;
+}
+
+.revision-prose h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 20px 0 6px;
+}
+
+.revision-prose h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 16px 0 4px;
+}
+
+.revision-prose p {
+  margin: 8px 0;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.revision-prose ul {
+  list-style-type: disc;
+  padding-left: 24px;
+  margin: 8px 0;
+}
+
+.revision-prose ol {
+  list-style-type: decimal;
+  padding-left: 24px;
+  margin: 8px 0;
+}
+
+.revision-prose li {
+  margin: 4px 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.revision-prose strong {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.revision-prose code {
+  font-family: 'Menlo', monospace;
+  font-size: 13px;
+  background: #f7f7f5;
+  border: 1px solid #e8e8e4;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.revision-prose blockquote {
+  border-left: 3px solid #e8e8e4;
+  padding-left: 16px;
+  color: #6b6b6b;
+  margin: 12px 0;
+}
+
+.revision-prose hr {
+  border: none;
+  border-top: 1px solid #e8e8e4;
+  margin: 20px 0;
+}
+
