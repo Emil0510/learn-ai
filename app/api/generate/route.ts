@@ -66,6 +66,14 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
 
     try {
+      // Polyfill DOMMatrix/Path2D/ImageData for Node (pdfjs-dist used by pdf-to-img
+      // expects these at module load time; they are not defined in serverless)
+      if (typeof globalThis.DOMMatrix === "undefined") {
+        const napi = await import("@napi-rs/canvas");
+        (globalThis as unknown as { DOMMatrix: unknown }).DOMMatrix = napi.DOMMatrix;
+        (globalThis as unknown as { Path2D: unknown }).Path2D = napi.Path2D;
+        (globalThis as unknown as { ImageData: unknown }).ImageData = napi.ImageData;
+      }
       const { pdf } = await import("pdf-to-img");
       const document = await pdf(buffer, { scale: 1.0 });
       let pageIndex = 0;

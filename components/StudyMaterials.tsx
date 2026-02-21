@@ -7,6 +7,7 @@ import Flashcards from "@/components/Flashcards";
 import McqQuiz from "@/components/McqQuiz";
 import RevisionSheet from "@/components/RevisionSheet";
 import ProgressBar from "@/components/ui/ProgressBar";
+import Button from "@/components/ui/Button";
 import type { GenerateResponse, StudyProgress } from "@/lib/types";
 
 export type ProgressUpdate =
@@ -31,6 +32,9 @@ export default function StudyMaterials({ data, studySetId }: StudyMaterialsProps
     flashcardProgress: [],
     mcqProgress: [],
   });
+  const [ttsLoading, setTtsLoading] = useState(false);
+  const [ttsError, setTtsError] = useState<string | null>(null);
+  const [ttsAudioUrl, setTtsAudioUrl] = useState<string | null>(null);
 
   const fetchProgress = useCallback(() => {
     if (!studySetId) return;
@@ -117,6 +121,32 @@ export default function StudyMaterials({ data, studySetId }: StudyMaterialsProps
   const hasFlashcardProgress = progress.flashcardProgress.length > 0;
   const hasMcqProgress = mcqLatestByIndex.size > 0;
 
+  const handleCreateVoice = useCallback(async () => {
+    if (!conspectContent.trim()) return;
+    setTtsLoading(true);
+    setTtsError(null);
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: conspectContent,
+          language: "Auto",
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setTtsError(json?.error ?? "Something went wrong.");
+        return;
+      }
+      setTtsAudioUrl(json.url ?? null);
+    } catch {
+      setTtsError("Something went wrong. Please try again.");
+    } finally {
+      setTtsLoading(false);
+    }
+  }, [conspectContent]);
+
   return (
     <div className="animate-fade-in space-y-0">
       <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
@@ -157,6 +187,29 @@ export default function StudyMaterials({ data, studySetId }: StudyMaterialsProps
                 />
               </div>
               <span>Export to Notion</span>
+            </div>
+            <div className="mt-4 space-y-3">
+              <Button
+                type="button"
+                onClick={handleCreateVoice}
+                disabled={ttsLoading || !conspectContent.trim()}
+              >
+                {ttsLoading ? "Creating voice…" : "Create voice"}
+              </Button>
+              {ttsLoading && (
+                <p className="text-[13px] text-notion-muted">
+                  Creating voice… This may take a moment.
+                </p>
+              )}
+              {ttsError && (
+                <p className="text-[13px] text-notion-danger">{ttsError}</p>
+              )}
+              {ttsAudioUrl && !ttsLoading && (
+                <div className="rounded-lg border border-notion-border bg-notion-card p-3">
+                  <p className="text-[12px] text-notion-muted mb-2">Generated audio</p>
+                  <audio src={ttsAudioUrl} controls className="w-full max-w-md" />
+                </div>
+              )}
             </div>
           </div>
         )}
